@@ -1,0 +1,279 @@
+{% extends 'base_authenticated.html' %}
+{% load static %}
+
+{% block title %}{{ report.title }} - SafeRoute{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+    #detailMap {
+        height: 450px;
+        width: 100%;
+        z-index: 1;
+    }
+    @media (max-width: 768px) {
+        #detailMap {
+            height: 300px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row">
+        <div class="col-md-8">
+            <!-- Header -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h2 class="mb-2">{{ report.title }}</h2>
+                            <div class="mb-2">
+                                <span class="badge badge-{{ report.severity }} me-2">{{ report.get_severity_display }}</span>
+                                <span class="badge bg-secondary">{{ report.get_category_display }}</span>
+                            </div>
+                        </div>
+                        {% if report.user.is_verified %}
+                        <span class="verified-badge">✓ Verified Reporter</span>
+                        {% endif %}
+                    </div>
+                    <p class="text-muted mb-0">
+                        <i class="fas fa-map-marker-alt"></i> {{ report.location_name|default:"Location not specified" }}<br>
+                        <i class="fas fa-calendar"></i> {{ report.incident_date|date:"F d, Y g:i A" }}<br>
+                        <i class="fas fa-user"></i> Reported by {{ report.user.get_full_name|default:report.user.username }}
+                    </p>
+                </div>
+            </div>
+
+            <!-- Image Carousel -->
+            {% if images %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5><i class="fas fa-images me-2"></i>Images</h5>
+                </div>
+                <div class="card-body">
+                    <div id="imageCarousel" class="carousel slide" data-bs-ride="carousel">
+                        <div class="carousel-inner">
+                            {% for image in images %}
+                            <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                                <img src="{{ image.image.url }}" class="d-block w-100" alt="{{ image.get_image_type_display }}" 
+                                     id="carousel-img-{{ image.id }}" style="filter: blur(10px); max-height: 500px; object-fit: cover;">
+                                <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-50 rounded p-2">
+                                    <p class="mb-0">{{ image.get_image_type_display }}</p>
+                                    {% if image.description %}
+                                    <p class="small mb-0">{{ image.description }}</p>
+                                    {% endif %}
+                                </div>
+                                <div class="text-center mt-3 mb-2">
+                                    <button class="btn btn-primary btn-sm" onclick="unblurCarouselImage({{ image.id }})">
+                                        <i class="fas fa-eye me-2"></i>Click to View Image
+                                    </button>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% if images|length > 1 %}
+                        <button class="carousel-control-prev" type="button" data-bs-target="#imageCarousel" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon"></span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#imageCarousel" data-bs-slide="next">
+                            <span class="carousel-control-next-icon"></span>
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Description -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5><i class="fas fa-file-alt me-2"></i>Incident Description</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0">{{ report.description|linebreaks }}</p>
+                </div>
+            </div>
+
+            <!-- Map -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5><i class="fas fa-map-marker-alt me-2"></i>Location Map</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div id="detailMap"></div>
+                    <div class="p-3 bg-light">
+                        <p class="mb-0 small text-muted">
+                            <i class="fas fa-map-marker-alt text-primary me-1"></i> 
+                            <strong>Coordinates:</strong> {{ report.latitude }}, {{ report.longitude }}
+                            {% if report.location_name %}
+                            <br><i class="fas fa-location-dot text-primary me-1"></i> 
+                            <strong>Location:</strong> {{ report.location_name }}
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-md-4">
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5>Actions</h5>
+                </div>
+                <div class="card-body">
+                    {% if user.is_authenticated %}
+                    <form method="post" action="{% url 'reports:mark_helpful' report.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-primary w-100 mb-2">
+                            <i class="fas fa-thumbs-up"></i> 
+                            {% if is_helpful %}Marked as Helpful{% else %}Mark as Helpful{% endif %}
+                        </button>
+                    </form>
+                    <p class="small text-center text-muted mb-3">
+                        {{ report.helpful_count }} people found this helpful
+                    </p>
+                    {% else %}
+                    <a href="{% url 'accounts:login' %}" class="btn btn-primary w-100 mb-2">Login to Mark as Helpful</a>
+                    {% endif %}
+                    
+                    <button class="btn btn-outline-secondary w-100 mb-2" onclick="shareReport()">
+                        <i class="fas fa-share"></i> Share Link
+                    </button>
+                    
+                    <button class="btn btn-outline-danger w-100" data-bs-toggle="modal" data-bs-target="#reportAbuseModal">
+                        <i class="fas fa-flag"></i> Report Abuse
+                    </button>
+                </div>
+            </div>
+
+            <!-- Additional Info -->
+            <div class="card">
+                <div class="card-header">
+                    <h5>Report Information</h5>
+                </div>
+                <div class="card-body">
+                    <p class="small mb-1">
+                        <strong>Reported:</strong> {{ report.created_at|date:"M d, Y" }}<br>
+                        <strong>Last Updated:</strong> {{ report.updated_at|date:"M d, Y" }}<br>
+                        <strong>Status:</strong> {% if report.is_verified %}Verified{% else %}Pending Verification{% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Report Abuse Modal -->
+<div class="modal fade" id="reportAbuseModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Report Abuse</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>If you believe this report contains false information or violates our community guidelines, please report it.</p>
+                <form>
+                    <div class="mb-3">
+                        <label class="form-label">Reason</label>
+                        <select class="form-control">
+                            <option>False Information</option>
+                            <option>Inappropriate Content</option>
+                            <option>Spam</option>
+                            <option>Other</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Additional Details</label>
+                        <textarea class="form-control" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger">Submit Report</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+// Initialize detail map
+const detailMap = L.map('detailMap', {
+    zoomControl: true,
+    scrollWheelZoom: true,
+    doubleClickZoom: true,
+    boxZoom: true
+}).setView([{{ report.latitude }}, {{ report.longitude }}], 16);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors',
+    maxZoom: 19
+}).addTo(detailMap);
+
+// Add marker with custom icon
+const incidentIcon = L.divIcon({
+    className: 'custom-marker',
+    html: '<div style="background-color: #C72375; width: 35px; height: 35px; border-radius: 50%; border: 4px solid white; box-shadow: 0 3px 10px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center;"><i class="fas fa-exclamation-triangle" style="color: white; font-size: 16px;"></i></div>',
+    iconSize: [35, 35],
+    iconAnchor: [17, 17]
+});
+
+const marker = L.marker([{{ report.latitude }}, {{ report.longitude }}], {icon: incidentIcon}).addTo(detailMap);
+
+marker.bindPopup(`
+    <div style="min-width: 200px;">
+        <h6 style="color: #C72375; margin-bottom: 0.5rem;">{{ report.title|escapejs }}</h6>
+        <p class="mb-1"><strong>Category:</strong> {{ report.get_category_display }}</p>
+        <p class="mb-1"><strong>Severity:</strong> <span class="badge badge-{{ report.severity }}">{{ report.get_severity_display }}</span></p>
+        {% if report.location_name %}
+        <p class="mb-1"><strong>Location:</strong> {{ report.location_name|escapejs }}</p>
+        {% endif %}
+        <p class="mb-0 small text-muted">{{ report.incident_date|date:"M d, Y g:i A" }}</p>
+    </div>
+`, {maxWidth: 300}).openPopup();
+
+// Unblur carousel images
+function unblurCarouselImage(imageId) {
+    const img = document.getElementById('carousel-img-' + imageId);
+    if (img) {
+        img.style.filter = 'blur(0)';
+        img.classList.add('unblurred');
+        // Hide the button after unblurring
+        const btn = img.parentElement.querySelector('button');
+        if (btn) btn.style.display = 'none';
+    }
+}
+
+// Share report
+function shareReport() {
+    if (navigator.share) {
+        navigator.share({
+            title: '{{ report.title|escapejs }}',
+            text: 'Check out this safety report on SafeRoute',
+            url: window.location.href
+        });
+    } else {
+        // Fallback: copy to clipboard
+        navigator.clipboard.writeText(window.location.href).then(() => {
+            alert('Link copied to clipboard!');
+        }).catch(() => {
+            // Fallback for older browsers
+            const textArea = document.createElement('textarea');
+            textArea.value = window.location.href;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            alert('Link copied to clipboard!');
+        });
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,127 @@
+{% extends 'base_authenticated.html' %}
+
+{% block title %}Suspects & Risk Locations Gallery - SafeRoute{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h1 class="text-center mb-4">Suspects & Risk Locations Gallery</h1>
+    
+    <!-- Filters -->
+    <div class="filters-panel mb-4">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Image Type</label>
+                <select name="type" class="form-control" onchange="this.form.submit()">
+                    <option value="all" {% if selected_type == 'all' %}selected{% endif %}>All Images</option>
+                    <option value="suspect" {% if selected_type == 'suspect' %}selected{% endif %}>Suspects/Offenders Only</option>
+                    <option value="location" {% if selected_type == 'location' %}selected{% endif %}>Locations Only</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Category</label>
+                <select name="category" class="form-control" onchange="this.form.submit()">
+                    <option value="">All Categories</option>
+                    <option value="theft" {% if selected_category == 'theft' %}selected{% endif %}>Theft</option>
+                    <option value="harassment" {% if selected_category == 'harassment' %}selected{% endif %}>Harassment</option>
+                    <option value="assault" {% if selected_category == 'assault' %}selected{% endif %}>Assault</option>
+                    <option value="road_danger" {% if selected_category == 'road_danger' %}selected{% endif %}>Road Danger</option>
+                    <option value="fraud" {% if selected_category == 'fraud' %}selected{% endif %}>Fraud/Scam</option>
+                    <option value="violence" {% if selected_category == 'violence' %}selected{% endif %}>Violence</option>
+                </select>
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+                <a href="{% url 'reports:gallery' %}" class="btn btn-secondary w-100">Clear Filters</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Gallery Grid -->
+    {% if page_obj %}
+    <div class="gallery-grid">
+        {% for image in page_obj %}
+        <div class="gallery-item" onclick="viewImage({{ image.id }})" id="gallery-item-{{ image.id }}">
+            <img src="{{ image.image.url }}" alt="{{ image.get_image_type_display }}" id="gallery-img-{{ image.id }}">
+            <div class="gallery-item-overlay">
+                <h6>{{ image.report.location_name|default:"Unknown Location" }}</h6>
+                <p class="small mb-1">{{ image.get_image_type_display }}</p>
+                <p class="small mb-1">{{ image.report.get_category_display }}</p>
+                <p class="small">{{ image.report.incident_date|date:"M d, Y" }}</p>
+                <a href="{% url 'reports:report_detail' image.report.id %}" class="btn btn-sm btn-primary mt-2" onclick="event.stopPropagation()">View Report</a>
+                <a href="{% url 'reports:heatmap' %}?lat={{ image.report.latitude }}&lng={{ image.report.longitude }}" 
+                   class="btn btn-sm btn-outline-light mt-2" onclick="event.stopPropagation()">View on Heatmap</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <nav aria-label="Gallery pagination" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if selected_type %}&type={{ selected_type }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}">Previous</a>
+            </li>
+            {% endif %}
+            
+            {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+            <li class="page-item active">
+                <span class="page-link">{{ num }}</span>
+            </li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ num }}{% if selected_type %}&type={{ selected_type }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}">{{ num }}</a>
+            </li>
+            {% endif %}
+            {% endfor %}
+            
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if selected_type %}&type={{ selected_type }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}">Next</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+    {% else %}
+    <div class="text-center py-5">
+        <p class="text-muted">No images found matching your filters.</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Image Modal -->
+<div class="modal fade" id="imageModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Image Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img id="modalImage" src="" class="img-fluid" style="max-height: 500px;">
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function viewImage(imageId) {
+    const img = document.getElementById('gallery-img-' + imageId);
+    const item = document.getElementById('gallery-item-' + imageId);
+    
+    // Unblur image
+    img.style.filter = 'blur(0)';
+    item.classList.add('unblurred');
+    
+    // Show in modal
+    const modal = new bootstrap.Modal(document.getElementById('imageModal'));
+    document.getElementById('modalImage').src = img.src;
+    modal.show();
+}
+</script>
+{% endblock %}
+

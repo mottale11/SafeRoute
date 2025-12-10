@@ -1,0 +1,103 @@
+{% extends 'base_authenticated.html' %}
+
+{% block title %}{{ discussion.title }} - Community Discussion{% endblock %}
+
+{% block content %}
+<div class="discussion-detail-container p-4">
+    <a href="{% url 'reports:community' %}" class="back-link mb-4 d-inline-flex align-items-center text-decoration-none">
+        <i class="fas fa-arrow-left me-2"></i> Back to Community
+    </a>
+    
+    <!-- Discussion Post -->
+    <div class="discussion-post-card mb-4">
+        <div class="d-flex justify-content-between align-items-start mb-4">
+            <div class="d-flex align-items-center">
+                {% if discussion.user.profile_picture %}
+                <img src="{{ discussion.user.profile_picture.url }}" alt="Profile" class="profile-pic-medium me-3">
+                {% else %}
+                <div class="profile-pic-medium bg-primary text-white d-flex align-items-center justify-content-center me-3">
+                    {{ discussion.user.username|first|upper }}
+                </div>
+                {% endif %}
+                <div>
+                    <div class="d-flex align-items-center mb-1">
+                        <span class="fw-bold me-2">{{ discussion.user.get_full_name|default:discussion.user.username }}</span>
+                        {% if discussion.user.is_verified %}
+                        <span class="badge bg-primary">Verified</span>
+                        {% endif %}
+                    </div>
+                    <div class="text-muted small">{{ discussion.created_at|timesince }} ago</div>
+                </div>
+            </div>
+            <span class="badge bg-primary">{{ discussion.get_category_display }}</span>
+        </div>
+        <h2 class="mb-3 fw-bold">{{ discussion.title }}</h2>
+        <div class="discussion-content">
+            {{ discussion.content|linebreaks }}
+        </div>
+    </div>
+    
+    <!-- Replies Section -->
+    <div class="replies-section">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4 class="mb-0">Replies ({{ replies.count }})</h4>
+        </div>
+        
+        <!-- Reply Form -->
+        <div class="reply-form-card mb-4">
+            <div class="d-flex align-items-start mb-3">
+                {% if user.profile_picture %}
+                <img src="{{ user.profile_picture.url }}" alt="Profile" class="profile-pic-small me-3">
+                {% else %}
+                <div class="profile-pic-small bg-primary text-white d-flex align-items-center justify-content-center me-3">
+                    {{ user.username|first|upper }}
+                </div>
+                {% endif %}
+                <form method="post" class="flex-grow-1">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <textarea name="reply_content" class="form-control" rows="4" placeholder="Write a reply..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-paper-plane me-2"></i>Post Reply
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Replies List -->
+        {% if replies %}
+        <div class="replies-list">
+            {% for reply in replies %}
+            <div class="reply-card mb-3">
+                <div class="d-flex align-items-start">
+                    {% if reply.user.profile_picture %}
+                    <img src="{{ reply.user.profile_picture.url }}" alt="Profile" class="profile-pic-small me-3">
+                    {% else %}
+                    <div class="profile-pic-small bg-primary text-white d-flex align-items-center justify-content-center me-3">
+                        {{ reply.user.username|first|upper }}
+                    </div>
+                    {% endif %}
+                    <div class="flex-grow-1">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="fw-bold">{{ reply.user.get_full_name|default:reply.user.username }}</span>
+                            <span class="text-muted small">{{ reply.created_at|timesince }} ago</span>
+                        </div>
+                        <div class="reply-content">
+                            {{ reply.content|linebreaks }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-comment-slash fa-3x text-muted mb-3"></i>
+            <p class="text-muted">No replies yet. Be the first to reply!</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+

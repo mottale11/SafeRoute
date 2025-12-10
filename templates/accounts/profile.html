@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+
+{% block title %}Profile - {{ user.username }}{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    <form method="post" enctype="multipart/form-data" id="profilePicForm">
+                        {% csrf_token %}
+                        <div class="position-relative d-inline-block">
+                            {% if user.profile_picture %}
+                            <img src="{{ user.profile_picture.url }}" alt="Profile" class="rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover;" id="profilePicPreview">
+                            {% else %}
+                            <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mb-3" 
+                                 style="width: 150px; height: 150px; font-size: 3rem;" id="profilePicPreview">
+                                {{ user.username|first|upper }}
+                            </div>
+                            {% endif %}
+                            <label for="id_profile_picture" class="btn btn-sm btn-primary position-absolute bottom-0 end-0" style="cursor: pointer;">
+                                <i class="fas fa-camera"></i>
+                            </label>
+                            <input type="file" name="profile_picture" id="id_profile_picture" accept="image/*" style="display: none;" onchange="document.getElementById('profilePicForm').submit();">
+                        </div>
+                    </form>
+                    <h3>{{ user.get_full_name|default:user.username }}</h3>
+                    {% if user.is_verified %}
+                    <span class="verified-badge">✓ Verified Reporter</span>
+                    {% endif %}
+                    <p class="text-muted mt-2">{{ user.email }}</p>
+                    {% if user.phone %}
+                    <p class="text-muted">{{ user.phone }}</p>
+                    {% endif %}
+                    <p class="small text-muted">Member since {{ user.date_joined|date:"M Y" }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-8">
+            <!-- Stats -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>Your Statistics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-4">
+                            <div class="stat-number">{{ reports|length }}</div>
+                            <div class="stat-label">Reports Submitted</div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="stat-number">0</div>
+                            <div class="stat-label">Helpful Marks Received</div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="stat-number">0</div>
+                            <div class="stat-label">Zones Saved</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Reports -->
+            <div class="card mb-4" id="my-reports">
+                <div class="card-header">
+                    <h5>Your Recent Reports</h5>
+                </div>
+                <div class="card-body">
+                    {% if reports %}
+                    <div class="list-group">
+                        {% for report in reports %}
+                        <a href="{% url 'reports:report_detail' report.id %}" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">{{ report.title }}</h6>
+                                <span class="badge badge-{{ report.severity }}">{{ report.get_severity_display }}</span>
+                            </div>
+                            <p class="mb-1 small">{{ report.get_category_display }}</p>
+                            <small class="text-muted">{{ report.location_name|default:"Location not specified" }} • {{ report.created_at|date:"M d, Y" }}</small>
+                        </a>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted">You haven't submitted any reports yet. <a href="{% url 'reports:submit_report' %}">Submit your first report</a></p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Settings -->
+            <div class="card">
+                <div class="card-header">
+                    <h5>Settings</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h6>Notifications</h6>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="notifEmail" checked>
+                            <label class="form-check-label" for="notifEmail">Email notifications</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="notifArea" checked>
+                            <label class="form-check-label" for="notifArea">Alerts for saved areas</label>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <h6>Privacy</h6>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="privacyProfile" checked>
+                            <label class="form-check-label" for="privacyProfile">Show profile in reports</label>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary">Save Settings</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

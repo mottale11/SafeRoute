@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}SafeRoute - Real-time Community Safety{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section my-0">
+    <div class="container mt-5">
+        <div class="d-sm-flex align-items-center justify-content-between">
+            <div>
+                <h1>Real-time Community Safety for Women.</h1>
+                <p>Report incidents, view risk zones, and stay informed.</p>
+                <div class="hero-buttons">
+                    <a href="{% url 'reports:heatmap' %}" class="btn btn-outline-light btn-lg">View Safety Heatmap</a>
+                    <a href="{% url 'reports:submit_report' %}" class="btn btn-secondary btn-lg rounded-4">Submit Incident Report</a>
+                </div>
+            </div>
+            <img src="{% static 'images/photo_women.png' %}" alt="Women's Safety, Women's Rights, Women's Safety Heatmap" class="img-fluid w-50 d-none d-sm-block pt-5 align item bottom">
+        </div>
+    </div>
+</section>
+
+<!-- Live Safety Snapshot -->
+<section class="container my-5">
+    <div class="live-snapshot">
+        <h2 class="text-center mb-4">Live Safety Snapshot</h2>
+        <div class="snapshot-stats">
+            <div class="stat-item col-3">
+                <div class="stat-number">{{ high_risk_count }}</div>
+                <div class="stat-label">High Risk Zones</div>
+            </div>
+            <div class="stat-item col-3">
+                <div class="stat-number">{{ moderate_risk_count }}</div>
+                <div class="stat-label">Moderate Risk</div>
+            </div>
+            <div class="stat-item col-3">
+                <div class="stat-number">{{ safe_zones_count }}</div>
+                <div class="stat-label">Safe Zones</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Recent Incident Cards -->
+<section class="container my-5">
+    <h2 class="text-center mb-4">Recent Incidents</h2>
+    <div class="row">
+        {% for incident in recent_incidents %}
+        <div class="col-md-4 mb-4">
+            <div class="card incident-card">
+                {% if incident.images.first %}
+                <img src="{{ incident.images.first.image.url }}" class="card-img-top" alt="Incident location" id="img-{{ incident.id }}">
+                <button class="unblur-btn" onclick="unblurImage({{ incident.id }})">Click to View</button>
+                {% else %}
+                <div class="card-img-top bg-light" style="height: 200px; display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-map-marker-alt fa-3x text-muted"></i>
+                </div>
+                {% endif %}
+                <div class="card-body">
+                    <span class="badge badge-{{ incident.severity }} mb-2">{{ incident.get_severity_display }}</span>
+                    <h5 class="card-title">{{ incident.title }}</h5>
+                    <p class="card-text text-muted small">{{ incident.get_category_display }}</p>
+                    <p class="card-text"><small class="text-muted">{{ incident.location_name|default:"Location not specified" }} • {{ incident.incident_date|date:"M d, Y" }}</small></p>
+                    <a href="{% url 'reports:report_detail' incident.id %}" class="btn btn-sm btn-primary">View Details</a>
+                    <a href="{% url 'reports:heatmap' %}?lat={{ incident.latitude }}&lng={{ incident.longitude }}" class="btn btn-sm btn-outline-primary">View on Heatmap</a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center">
+            <p class="text-muted">No recent incidents to display.</p>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- How It Works -->
+<section class="how-it-works">
+    <div class="container">
+        <h2 class="text-center mb-5">How It Works</h2>
+        <div class="row">
+            <div class="col-md-4">
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <h4>Report an Incident</h4>
+                    <p>Share details about safety incidents, upload photos, and mark locations on the map.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <h4>System Verifies & Maps</h4>
+                    <p>Our system verifies reports and maps severity levels to create real-time safety data.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <h4>Community Stays Alert</h4>
+                    <p>View the heatmap, check recent incidents, and navigate cities confidently with community insights.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function unblurImage(incidentId) {
+    const img = document.getElementById('img-' + incidentId);
+    if (img) {
+        img.style.filter = 'blur(0)';
+        img.parentElement.querySelector('.unblur-btn').style.display = 'none';
+    }
+}
+</script>
+{% endblock %}
+

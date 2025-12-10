@@ -1,0 +1,100 @@
+{% extends 'base_authenticated.html' %}
+{% load static %}
+
+{% block title %}Dashboard - SafeRoute{% endblock %}
+
+{% block content %}
+<div class="dashboard-container p-4">
+    <!-- Welcome Section -->
+    <div class="welcome-section mb-4">
+        <h1 class="mb-2">Welcome Back, {{ user.get_full_name|default:user.username }}!</h1>
+        <p class="text-muted">Your community is safer with your contributions. What would you like to do today?</p>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions-grid mb-5">
+        <a href="{% url 'reports:submit_report' %}" class="quick-action-btn active">
+            <i class="fas fa-plus-circle"></i>
+            <span>Submit Incident</span>
+        </a>
+        <a href="{% url 'reports:heatmap' %}" class="quick-action-btn">
+            <i class="fas fa-map-marked-alt"></i>
+            <span>Open Heatmap</span>
+        </a>
+        <a href="{% url 'accounts:profile' %}" class="quick-action-btn">
+            <i class="fas fa-clipboard-list"></i>
+            <span>My Reports</span>
+        </a>
+        <a href="{% url 'reports:heatmap' %}" class="quick-action-btn">
+            <i class="fas fa-star"></i>
+            <span>Saved Zones</span>
+        </a>
+    </div>
+
+    <!-- Activity Feed -->
+    <div class="activity-feed">
+        <h3 class="mb-4">Activity Feed</h3>
+        
+        {% for incident in area_incidents %}
+        <div class="activity-card mb-4">
+            <div class="row g-0">
+                <div class="col-auto">
+                    {% if incident.images.first %}
+                    <img src="{{ incident.images.first.image.url }}" alt="Incident" class="activity-image" style="filter: blur(5px);">
+                    {% else %}
+                    <div class="activity-image bg-light d-flex align-items-center justify-content-center">
+                        <i class="fas fa-map-marker-alt fa-2x text-muted"></i>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="col">
+                    <div class="activity-content p-3">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div class="d-flex align-items-center">
+                                {% if incident.user.profile_picture %}
+                                <img src="{{ incident.user.profile_picture.url }}" alt="Profile" class="profile-pic-xs me-2">
+                                {% else %}
+                                <div class="profile-pic-xs bg-primary text-white d-flex align-items-center justify-content-center me-2">
+                                    {{ incident.user.username|first|upper }}
+                                </div>
+                                {% endif %}
+                                <div>
+                                    <span class="fw-bold">{{ incident.user.get_full_name|default:incident.user.username }}</span>
+                                    {% if incident.user.is_verified %}
+                                    <span class="badge bg-primary ms-2">Verified</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <span class="text-muted small">{{ incident.created_at|timesince }} ago</span>
+                        </div>
+                        <h5 class="mb-2 fw-bold">{{ incident.title }}</h5>
+                        <div class="mb-2">
+                            <span class="badge bg-secondary me-1">{{ incident.get_severity_display }}</span>
+                            <span class="badge bg-secondary">{{ incident.get_category_display }}</span>
+                        </div>
+                        <p class="text-muted mb-2">{{ incident.description|truncatewords:30 }}</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="text-muted small me-3">
+                                    <i class="fas fa-star text-warning"></i> {{ incident.helpful_count }} Helpful
+                                </span>
+                                <span class="text-muted small">
+                                    <i class="fas fa-comments"></i> 0 Comments
+                                </span>
+                            </div>
+                            <a href="{% url 'reports:report_detail' incident.id %}" class="text-primary text-decoration-none">
+                                View Details →
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-5">
+            <p class="text-muted">No recent incidents in your area.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

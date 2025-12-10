@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}SafeRoute - Women's Safety Heatmap{% endblock %}</title>
+    
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Belleza&family=Alegreya:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="shortcut icon" href="{% static 'images/SR_logo.png' %}" type="image/x-icon">
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="dashboard-layout">
+    <!-- Mobile Menu Toggle -->
+    <button class="mobile-menu-toggle d-md-none" onclick="toggleSidebar()" aria-label="Toggle menu">
+        <i class="fas fa-bars"></i>
+    </button>
+    
+    <div class="container-fluid p-0">
+        <div class="row g-0">
+            <!-- Sidebar -->
+            <div class="col-md-2 sidebar" id="sidebar">
+                <div class="sidebar-content">
+                    <div class="sidebar-logo mb-4">
+                        <h4 class="mb-0">
+                            <span class="text-muted">SafeRoute</span>
+                        </h4>
+                    </div>
+                    <nav class="sidebar-nav">
+                        <a href="{% url 'reports:dashboard' %}" class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                            <i class="fas fa-home"></i> <span>Dashboard</span>
+                        </a>
+                        <a href="{% url 'reports:heatmap' %}" class="nav-item {% if request.resolver_match.url_name == 'heatmap' %}active{% endif %}">
+                            <i class="fas fa-th"></i> <span>Heatmap</span>
+                        </a>
+                        <a href="{% url 'reports:submit_report' %}" class="nav-item {% if request.resolver_match.url_name == 'submit_report' %}active{% endif %}">
+                            <i class="fas fa-plus-circle"></i> <span>Submit Report</span>
+                        </a>
+                        <a href="{% url 'reports:gallery' %}" class="nav-item {% if request.resolver_match.url_name == 'gallery' %}active{% endif %}">
+                            <i class="fas fa-images"></i> <span>Gallery</span>
+                        </a>
+                        <a href="{% url 'reports:community' %}" class="nav-item {% if request.resolver_match.url_name == 'community' or request.resolver_match.url_name == 'discussion_detail' %}active{% endif %}">
+                            <i class="fas fa-comments"></i> <span>Community</span>
+                        </a>
+                        <a href="{% url 'reports:safety_tips' %}" class="nav-item {% if request.resolver_match.url_name == 'safety_tips' %}active{% endif %}">
+                            <i class="fas fa-shield-alt"></i> <span>Safety Tips</span>
+                        </a>
+                    </nav>
+                    <div class="sidebar-footer">
+                        <a href="{% url 'accounts:profile' %}" class="nav-item">
+                            <i class="fas fa-user"></i> <span>Profile</span>
+                        </a>
+                        <a href="{% url 'accounts:logout' %}" class="nav-item text-danger">
+                            <i class="fas fa-sign-out-alt"></i> <span>Logout</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Main Content -->
+            <div class="col-md-10 main-content">
+                <!-- Top Header -->
+                <header class="top-header">
+                    <div class="d-flex justify-content-between align-items-center w-100">
+                        <div class="header-left">
+                            <i class="fas fa-map-marked-alt text-primary me-2"></i>
+                        </div>
+                        <div class="header-center flex-grow-1 mx-4 d-none d-md-block">
+                            <div class="search-bar">
+                                <i class="fas fa-search"></i>
+                                <input type="text" placeholder="Search incidents or locations..." class="form-control">
+                            </div>
+                        </div>
+                        <div class="header-right d-flex align-items-center">
+                            <div class="dropdown">
+                                <button type="button" class="btn btn-link text-muted p-0 me-3 position-relative" id="notificationBtn" data-bs-toggle="dropdown" aria-expanded="false" style="text-decoration: none; border: none;">
+                                    <i class="fas fa-bell fa-lg"></i>
+                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem; display: none;" id="notificationBadge">
+                                        0
+                                    </span>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationBtn" style="min-width: 320px; max-height: 400px; overflow-y: auto;">
+                                    <li><h6 class="dropdown-header d-flex justify-content-between align-items-center">
+                                        <span>Notifications</span>
+                                        <button class="btn btn-sm btn-link text-muted p-0" onclick="markAllRead()" style="font-size: 0.8rem;">Mark all read</button>
+                                    </h6></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item text-center text-muted py-4" href="#">
+                                        <i class="fas fa-bell-slash fa-2x mb-2 d-block"></i>
+                                        No new notifications
+                                    </a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item text-center text-primary" href="{% url 'reports:dashboard' %}">
+                                        View all notifications
+                                    </a></li>
+                                </ul>
+                            </div>
+                            {% if user.profile_picture %}
+                            <a href="{% url 'accounts:profile' %}">
+                                <img src="{{ user.profile_picture.url }}" alt="Profile" class="profile-pic-small">
+                            </a>
+                            {% else %}
+                            <a href="{% url 'accounts:profile' %}">
+                                <div class="profile-pic-small bg-primary text-white d-flex align-items-center justify-content-center">
+                                    {{ user.username|first|upper }}
+                                </div>
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </header>
+
+                <!-- Messages -->
+                {% if messages %}
+                    <div class="messages-container">
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm" role="alert">
+                                <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' or message.tags == 'danger' %}exclamation-circle{% else %}info-circle{% endif %} me-2"></i>
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <!-- Page Content -->
+                <main class="content-area">
+                    {% block content %}{% endblock %}
+                </main>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+    // Mobile sidebar toggle
+    function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        sidebar.classList.toggle('show');
+    }
+    
+    // Close sidebar when clicking outside on mobile
+    document.addEventListener('click', function(event) {
+        const sidebar = document.getElementById('sidebar');
+        const toggleBtn = document.querySelector('.mobile-menu-toggle');
+        if (window.innerWidth < 768 && sidebar && sidebar.classList.contains('show')) {
+            if (!sidebar.contains(event.target) && toggleBtn && !toggleBtn.contains(event.target)) {
+                sidebar.classList.remove('show');
+            }
+        }
+    });
+    
+    // Handle window resize
+    window.addEventListener('resize', function() {
+        const sidebar = document.getElementById('sidebar');
+        if (window.innerWidth >= 768 && sidebar) {
+            sidebar.classList.remove('show');
+        }
+    });
+    
+    // Notification functionality (placeholder - implement real notifications)
+    function markAllRead() {
+        const badge = document.getElementById('notificationBadge');
+        if (badge) {
+            badge.style.display = 'none';
+        }
+    }
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
