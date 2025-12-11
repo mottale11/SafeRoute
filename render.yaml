@@ -29,5 +29,12 @@ services:
           type: web
           name: saferoute-web
           property: host
+      # Optional: Admin user creation (for free tier without shell access)
+      - key: ADMIN_USERNAME
+        value: admin
+      - key: ADMIN_EMAIL
+        value: admin@saferoute.com
+      - key: ADMIN_PASSWORD
+        generateValue: true  # Change this to a secure password manually
     healthCheckPath: /
 

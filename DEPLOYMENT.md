@@ -155,14 +155,26 @@ For now, the current setup will work for testing.
 
 ### 6.3 Create Superuser (Admin Access)
 
+**Note:** Free tier doesn't include Shell access. Use one of these methods:
+
+**Method 1: Environment Variables (Recommended)**
 1. In Render dashboard, go to your web service
-2. Click **"Shell"** tab
-3. Run:
+2. Click **"Environment"** tab
+3. Add these environment variables:
+   - `ADMIN_USERNAME`: `admin` (or your preferred username)
+   - `ADMIN_EMAIL`: `admin@yourdomain.com`
+   - `ADMIN_PASSWORD`: `YourSecurePassword123!` (use a strong password)
+4. Redeploy your service (or it will auto-redeploy)
+5. Admin user will be created automatically during build
+6. Access admin at: `https://your-app.onrender.com/admin/`
+
+**Method 2: Management Command**
+If you have Shell access (paid tier), run:
 ```bash
 python manage.py createsuperuser
 ```
-4. Follow prompts to create admin user
-5. Access admin at: `https://your-app.onrender.com/admin/`
+
+For detailed instructions on all methods, see `CREATE_ADMIN_GUIDE.md`
 
 ## Step 7: Environment Variables Reference
 
@@ -175,6 +187,9 @@ Here's a complete list of environment variables you can set:
 | `DATABASE_URL` | ✅ Yes | - | PostgreSQL connection string |
 | `RENDER_EXTERNAL_HOSTNAME` | Auto | - | Your app's hostname (auto-set) |
 | `PYTHON_VERSION` | No | `3.11.0` | Python version |
+| `ADMIN_USERNAME` | No | `admin` | Admin username (for auto-creation, free tier) |
+| `ADMIN_EMAIL` | No | `admin@saferoute.com` | Admin email (for auto-creation, free tier) |
+| `ADMIN_PASSWORD` | No | - | Admin password (for auto-creation, free tier method) |
 
 ## Step 8: Using render.yaml (Alternative Method)
 

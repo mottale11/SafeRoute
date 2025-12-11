@@ -36,12 +36,16 @@ git push origin main
 - Build takes 2-3 minutes
 - Watch the logs for success
 
-### Step 5: Create Admin User
-1. Go to your service → **"Shell"** tab
-2. Run:
-   ```bash
-   python manage.py createsuperuser
-   ```
+### Step 5: Create Admin User (Free Tier Method)
+1. Go to your service → **"Environment"** tab
+2. Add environment variables:
+   - `ADMIN_USERNAME`: `admin`
+   - `ADMIN_EMAIL`: `admin@yourdomain.com`
+   - `ADMIN_PASSWORD`: `YourSecurePassword123!`
+3. Redeploy (or wait for auto-redeploy)
+4. Admin user will be created automatically!
+
+**Note:** Free tier doesn't have Shell access. See `CREATE_ADMIN_GUIDE.md` for all methods.
 
 ### Step 6: Access Your App
 - Your app URL: `https://saferoute-web.onrender.com`
