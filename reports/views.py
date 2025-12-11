@@ -39,19 +39,25 @@ def home_view(request):
 @login_required
 def dashboard_view(request):
     """User dashboard"""
-    user = request.user
-    user_reports = IncidentReport.objects.filter(user=user).order_by('-created_at')[:5]
-    saved_zones = SavedZone.objects.filter(user=user)
-    
-    # Activity feed - recent incidents with images
-    area_incidents = IncidentReport.objects.filter(is_verified=True).select_related('user').prefetch_related('images').order_by('-created_at')[:10]
-    
-    # Calculate helpful counts and comment counts for each incident
-    for incident in area_incidents:
-        incident.comment_count = 0  # Placeholder for future comment feature
+    try:
+        user = request.user
+        user_reports = IncidentReport.objects.filter(user=user).order_by('-created_at')[:5]
+        saved_zones = SavedZone.objects.filter(user=user)
+        
+        # Activity feed - recent incidents with images
+        area_incidents = IncidentReport.objects.filter(is_verified=True).select_related('user').prefetch_related('images').order_by('-created_at')[:10]
+        
+        # Calculate helpful counts and comment counts for each incident
+        for incident in area_incidents:
+            incident.comment_count = 0  # Placeholder for future comment feature
+    except Exception as e:
+        # If database tables don't exist yet, use empty defaults
+        user_reports = []
+        saved_zones = []
+        area_incidents = []
     
     context = {
-        'user': user,
+        'user': request.user,
         'user_reports': user_reports,
         'saved_zones': saved_zones,
         'area_incidents': area_incidents,
@@ -90,63 +96,72 @@ def submit_report_view(request):
 
 def heatmap_view(request):
     """Public safety heatmap page"""
-    # Get filter parameters
-    category = request.GET.get('category', '')
-    severity = request.GET.get('severity', '')
-    time_filter = request.GET.get('time', 'all')
-    
-    # Base queryset
-    reports = IncidentReport.objects.filter(is_verified=True)
-    
-    # Apply filters
-    if category:
-        reports = reports.filter(category=category)
-    if severity:
-        reports = reports.filter(severity=severity)
-    if time_filter == '24h':
-        reports = reports.filter(created_at__gte=timezone.now() - timedelta(days=1))
-    elif time_filter == 'week':
-        reports = reports.filter(created_at__gte=timezone.now() - timedelta(days=7))
-    elif time_filter == 'month':
-        reports = reports.filter(created_at__gte=timezone.now() - timedelta(days=30))
-    
-    # Get user's saved zones (if authenticated) - for display in template
-    user_saved_zones = []
-    if request.user.is_authenticated:
-        try:
-            user_saved_zones = SavedZone.objects.filter(user=request.user)
-        except:
-            pass
-    
-    # Get saved zones for map (JSON)
-    saved_zones_json = []
-    if request.user.is_authenticated:
-        try:
-            user_zones = SavedZone.objects.filter(user=request.user)
-            for zone in user_zones:
-                saved_zones_json.append({
-                    'name': zone.name,
-                    'latitude': float(zone.latitude),
-                    'longitude': float(zone.longitude),
-                    'radius': float(zone.radius),
-                })
-        except:
-            pass
-    
-    # Serialize for map
-    incidents_data = []
-    for report in reports:
-        incidents_data.append({
-            'id': report.id,
-            'title': report.title,
-            'category': report.get_category_display(),
-            'severity': report.severity,
-            'latitude': float(report.latitude),
-            'longitude': float(report.longitude),
-            'location_name': report.location_name or '',
-            'incident_date': report.incident_date.isoformat(),
-            'url': f'/reports/{report.id}/',
-        })
+    try:
+        # Get filter parameters
+        category = request.GET.get('category', '')
+        severity = request.GET.get('severity', '')
+        time_filter = request.GET.get('time', 'all')
+        
+        # Base queryset
+        reports = IncidentReport.objects.filter(is_verified=True)
+        
+        # Apply filters
+        if category:
+            reports = reports.filter(category=category)
+        if severity:
+            reports = reports.filter(severity=severity)
+        if time_filter == '24h':
+            reports = reports.filter(created_at__gte=timezone.now() - timedelta(days=1))
+        elif time_filter == 'week':
+            reports = reports.filter(created_at__gte=timezone.now() - timedelta(days=7))
+        elif time_filter == 'month':
+            reports = reports.filter(created_at__gte=timezone.now() - timedelta(days=30))
+        
+        # Get user's saved zones (if authenticated) - for display in template
+        user_saved_zones = []
+        if request.user.is_authenticated:
+            try:
+                user_saved_zones = SavedZone.objects.filter(user=request.user)
+            except:
+                pass
+        
+        # Get saved zones for map (JSON)
+        saved_zones_json = []
+        if request.user.is_authenticated:
+            try:
+                user_zones = SavedZone.objects.filter(user=request.user)
+                for zone in user_zones:
+                    saved_zones_json.append({
+                        'name': zone.name,
+                        'latitude': float(zone.latitude),
+                        'longitude': float(zone.longitude),
+                        'radius': float(zone.radius),
+                    })
+            except:
+                pass
+        
+        # Serialize for map
+        incidents_data = []
+        for report in reports:
+            incidents_data.append({
+                'id': report.id,
+                'title': report.title,
+                'category': report.get_category_display(),
+                'severity': report.severity,
+                'latitude': float(report.latitude),
+                'longitude': float(report.longitude),
+                'location_name': report.location_name or '',
+                'incident_date': report.incident_date.isoformat(),
+                'url': f'/reports/{report.id}/',
+            })
+    except Exception as e:
+        # If database tables don't exist yet, use empty defaults
+        incidents_data = []
+        saved_zones_json = []
+        user_saved_zones = []
+        category = request.GET.get('category', '')
+        severity = request.GET.get('severity', '')
+        time_filter = request.GET.get('time', 'all')
     
     context = {
         'incidents': json.dumps(incidents_data),
@@ -194,30 +209,35 @@ def mark_helpful_view(request, report_id):
 
 def gallery_view(request):
     """Suspects & Risk Locations Gallery"""
-    image_type = request.GET.get('type', 'all')
-    category = request.GET.get('category', '')
-    
-    images = IncidentImage.objects.filter(report__is_verified=True)
-    
-    if image_type == 'suspect':
-        images = images.filter(image_type='suspect')
-    elif image_type == 'location':
-        images = images.filter(image_type='location')
-    
-    if category:
-        images = images.filter(report__category=category)
-    
-    images = images.order_by('-created_at')
-    
-    # Pagination
-    paginator = Paginator(images, 12)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+    try:
+        image_type = request.GET.get('type', 'all')
+        category = request.GET.get('category', '')
+        
+        images = IncidentImage.objects.filter(report__is_verified=True)
+        
+        if image_type == 'suspect':
+            images = images.filter(image_type='suspect')
+        elif image_type == 'location':
+            images = images.filter(image_type='location')
+        
+        if category:
+            images = images.filter(report__category=category)
+        
+        images = images.order_by('-created_at')
+        
+        # Pagination
+        paginator = Paginator(images, 12)
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+    except Exception as e:
+        # If database tables don't exist yet, use empty defaults
+        from django.core.paginator import EmptyPage, PageNotAnInteger
+        page_obj = None
     
     context = {
         'page_obj': page_obj,
-        'selected_type': image_type,
-        'selected_category': category,
+        'selected_type': image_type if 'image_type' in locals() else 'all',
+        'selected_category': category if 'category' in locals() else '',
     }
     return render(request, 'reports/gallery.html', context)
 
@@ -267,17 +287,22 @@ def get_incidents_json(request):
 @login_required
 def community_discussion_view(request):
     """Community discussion page"""
-    category_filter = request.GET.get('category', 'all')
-    
-    discussions = CommunityDiscussion.objects.all().select_related('user').order_by('-created_at')
-    
-    if category_filter != 'all':
-        discussions = discussions.filter(category=category_filter)
-    
-    # Pagination
-    paginator = Paginator(discussions, 10)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+    try:
+        category_filter = request.GET.get('category', 'all')
+        
+        discussions = CommunityDiscussion.objects.all().select_related('user').order_by('-created_at')
+        
+        if category_filter != 'all':
+            discussions = discussions.filter(category=category_filter)
+        
+        # Pagination
+        paginator = Paginator(discussions, 10)
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+    except Exception as e:
+        # If database tables don't exist yet, use empty defaults
+        page_obj = None
+        category_filter = 'all'
     
     context = {
         'page_obj': page_obj,

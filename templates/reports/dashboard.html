@@ -42,7 +42,7 @@
         <div class="activity-card mb-4">
             <div class="row g-0">
                 <div class="col-auto">
-                    {% if incident.images.first %}
+                    {% if incident.images.first and incident.images.first.image %}
                     <img src="{{ incident.images.first.image.url }}" alt="Incident" class="activity-image" style="filter: blur(5px);">
                     {% else %}
                     <div class="activity-image bg-light d-flex align-items-center justify-content-center">

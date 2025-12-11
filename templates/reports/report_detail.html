@@ -60,6 +60,7 @@
                         <div class="carousel-inner">
                             {% for image in images %}
                             <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                                {% if image.image %}
                                 <img src="{{ image.image.url }}" class="d-block w-100" alt="{{ image.get_image_type_display }}" 
                                      id="carousel-img-{{ image.id }}" style="filter: blur(10px); max-height: 500px; object-fit: cover;">
                                 <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-50 rounded p-2">
@@ -73,6 +74,14 @@
                                         <i class="fas fa-eye me-2"></i>Click to View Image
                                     </button>
                                 </div>
+                                {% else %}
+                                <div class="d-flex align-items-center justify-content-center" style="height: 500px; background-color: #f8f9fa;">
+                                    <div class="text-center">
+                                        <i class="fas fa-image fa-3x text-muted mb-3"></i>
+                                        <p class="text-muted">Image not available</p>
+                                    </div>
+                                </div>
+                                {% endif %}
                             </div>
                             {% endfor %}
                         </div>

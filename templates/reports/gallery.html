@@ -1,4 +1,5 @@
 {% extends 'base_authenticated.html' %}
+{% load static %}
 
 {% block title %}Suspects & Risk Locations Gallery - SafeRoute{% endblock %}
 
@@ -44,7 +45,13 @@
     <div class="gallery-grid">
         {% for image in page_obj %}
         <div class="gallery-item" onclick="viewImage({{ image.id }})" id="gallery-item-{{ image.id }}">
+            {% if image.image %}
             <img src="{{ image.image.url }}" alt="{{ image.get_image_type_display }}" id="gallery-img-{{ image.id }}">
+            {% else %}
+            <div class="gallery-item-placeholder d-flex align-items-center justify-content-center">
+                <i class="fas fa-image fa-3x text-muted"></i>
+            </div>
+            {% endif %}
             <div class="gallery-item-overlay">
                 <h6>{{ image.report.location_name|default:"Unknown Location" }}</h6>
                 <p class="small mb-1">{{ image.get_image_type_display }}</p>
