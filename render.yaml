@@ -36,5 +36,12 @@ services:
         value: admin@saferoute.com
       - key: ADMIN_PASSWORD
         generateValue: true  # Change this to a secure password manually
+      # Cloudinary Configuration (get from https://cloudinary.com/console)
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false  # Set manually in Render dashboard
+      - key: CLOUDINARY_API_KEY
+        sync: false  # Set manually in Render dashboard
+      - key: CLOUDINARY_API_SECRET
+        sync: false  # Set manually in Render dashboard
     healthCheckPath: /
 

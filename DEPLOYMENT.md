@@ -190,6 +190,9 @@ Here's a complete list of environment variables you can set:
 | `ADMIN_USERNAME` | No | `admin` | Admin username (for auto-creation, free tier) |
 | `ADMIN_EMAIL` | No | `admin@saferoute.com` | Admin email (for auto-creation, free tier) |
 | `ADMIN_PASSWORD` | No | - | Admin password (for auto-creation, free tier method) |
+| `CLOUDINARY_CLOUD_NAME` | No | - | Cloudinary cloud name (for image storage) |
+| `CLOUDINARY_API_KEY` | No | - | Cloudinary API key (for image storage) |
+| `CLOUDINARY_API_SECRET` | No | - | Cloudinary API secret (for image storage) |
 
 ## Step 8: Using render.yaml (Alternative Method)
 

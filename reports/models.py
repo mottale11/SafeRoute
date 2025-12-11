@@ -2,6 +2,14 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator, MaxValueValidator
 
+# Try to import Cloudinary storage, fallback to default if not available
+try:
+    from cloudinary_storage.storage import MediaCloudinaryStorage
+    CLOUDINARY_STORAGE_AVAILABLE = True
+except ImportError:
+    MediaCloudinaryStorage = None
+    CLOUDINARY_STORAGE_AVAILABLE = False
+
 User = get_user_model()
 
 
@@ -54,7 +62,10 @@ class IncidentImage(models.Model):
     ]
     
     report = models.ForeignKey(IncidentReport, related_name='images', on_delete=models.CASCADE)
-    image = models.ImageField(upload_to='incident_images/')
+    image = models.ImageField(
+        upload_to='incident_images/',
+        storage=MediaCloudinaryStorage() if CLOUDINARY_STORAGE_AVAILABLE else None
+    )
     image_type = models.CharField(max_length=20, choices=IMAGE_TYPE_CHOICES)
     is_blurred = models.BooleanField(default=True)
     description = models.TextField(blank=True)
@@ -67,7 +78,10 @@ class IncidentImage(models.Model):
 class IncidentVideo(models.Model):
     """Videos associated with incidents"""
     report = models.ForeignKey(IncidentReport, related_name='videos', on_delete=models.CASCADE)
-    video = models.FileField(upload_to='incident_videos/')
+    video = models.FileField(
+        upload_to='incident_videos/',
+        storage=MediaCloudinaryStorage() if CLOUDINARY_STORAGE_AVAILABLE else None
+    )
     description = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -75,7 +89,10 @@ class IncidentVideo(models.Model):
 class IncidentAudio(models.Model):
     """Audio recordings associated with incidents"""
     report = models.ForeignKey(IncidentReport, related_name='audio_files', on_delete=models.CASCADE)
-    audio = models.FileField(upload_to='incident_audio/')
+    audio = models.FileField(
+        upload_to='incident_audio/',
+        storage=MediaCloudinaryStorage() if CLOUDINARY_STORAGE_AVAILABLE else None
+    )
     description = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

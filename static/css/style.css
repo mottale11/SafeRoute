@@ -34,7 +34,22 @@ h1, h2, h3, h4, h5, h6 {
 /* Navigation */
 .navbar {
     background-color: var(--white) !important;
-    padding: 1rem 0;
+    padding: 0.1rem 0;
+}
+
+.navbar-nav {
+    margin-left: auto;
+}
+
+.navbar-nav .nav-link {
+    margin: 0 0.2rem;
+    color: var(--text-dark) !important;
+    font-weight: 500;
+    transition: color 0.3s;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    padding-top: 0.1rem;
+    padding-bottom: 0.1rem;
 }
 
 .brand-text {
@@ -81,6 +96,7 @@ h1, h2, h3, h4, h5, h6 {
     background-color: var(--accent-color);
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(199, 35, 117, 0.3);
+
 }
 
 .btn-secondary {
@@ -100,8 +116,12 @@ h1, h2, h3, h4, h5, h6 {
 .hero-section {
     background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%);
     color: var(--white);
-    padding: 5rem 0;
+    padding-left: 2rem;
+    padding-right: 2rem;
+    padding-top: 7rem;
+    padding-bottom: 0;
     text-align: center;
+    margin-bottom: 0;
 }
 
 .hero-section h1 {
@@ -1154,3 +1174,11 @@ h1, h2, h3, h4, h5, h6 {
     padding-top: 5rem;
 }
 
+@media (max-width: 768px) {
+    .hero-section {
+        padding-left: 1rem;
+        padding-right: 1rem;
+        padding-top: 5rem;
+        padding-bottom: 1rem;
+    }
+}
