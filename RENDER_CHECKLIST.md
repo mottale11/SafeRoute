@@ -141,13 +141,5 @@ If something doesn't work, check:
 - [ ] Optimize performance
 - [ ] Set up CDN for static files (optional)
 
-## Support Resources
 
-- Render Docs: https://render.com/docs
-- Django Deployment: https://docs.djangoproject.com/en/4.2/howto/deployment/
-- Render Community: https://community.render.com
-
----
-
-**Ready to deploy?** Follow `QUICK_DEPLOY.md` for step-by-step instructions!
 

@@ -312,11 +312,7 @@ This creates both the database and web service automatically.
    - Render auto-deploys on git push
    - Add tests to your workflow
 
-## Support
 
-- Render Documentation: https://render.com/docs
-- Render Community: https://community.render.com
-- Django Deployment: https://docs.djangoproject.com/en/4.2/howto/deployment/
 
 ## Quick Reference Commands
 
@@ -330,10 +326,6 @@ python manage.py createsuperuser
 python manage.py collectstatic
 ```
 
-**View logs:**
-- Render Dashboard → Your Service → Logs tab
 
----
 
-**Congratulations!** Your SafeRoute application should now be live on Render! 🎉
 
