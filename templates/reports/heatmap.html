@@ -164,7 +164,7 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 }).addTo(map);
 
 // Get incidents data from template
-const incidents = {{ incidents }};
+const incidents = {{ incidents|safe }};
 
 // Create heatmap data
 const heatmapData = incidents.map(incident => [
