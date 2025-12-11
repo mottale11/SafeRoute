@@ -2,6 +2,10 @@
 
 {% block title %}Profile - {{ user.username }}{% endblock %}
 
+{% block extra_css %}
+<link rel="shortcut icon" href="{% static 'images/SR_Logo.png' %}" type="image/x-icon">
+{% endblock %}
+
 {% block content %}
 <div class="container pt-5 my-5 profile-page">
     <div class="row mt-5">
@@ -25,7 +29,13 @@
                             <input type="file" name="profile_picture" id="id_profile_picture" accept="image/*" style="display: none;" onchange="document.getElementById('profilePicForm').submit();">
                         </div>
                     </form>
-                    <h3>{{ user.get_full_name|default:user.username }}</h3>
+                    <h3>{% if user.get_full_name %}{{ user.get_full_name }}{% else %}{{ user.username }}{% endif %}</h3>
+                    {% if user.first_name or user.last_name %}
+                    <p class="text-muted mt-1">
+                        {% if user.first_name %}{{ user.first_name }}{% endif %}
+                        {% if user.last_name %} {{ user.last_name }}{% endif %}
+                    </p>
+                    {% endif %}
                     {% if user.is_verified %}
                     <span class="verified-badge">✓ Verified Reporter</span>
                     {% endif %}

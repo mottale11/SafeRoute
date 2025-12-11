@@ -6,9 +6,10 @@ from .models import CustomUser
 
 @admin.register(CustomUser)
 class CustomUserAdmin(UserAdmin):
-    list_display = ('username', 'email', 'is_verified', 'is_staff', 'profile_picture_preview', 'date_joined')
+    list_display = ('username', 'first_name', 'last_name', 'email', 'is_verified', 'is_staff', 'profile_picture_preview', 'date_joined')
     list_filter = ('is_verified', 'is_staff', 'is_superuser')
     readonly_fields = ('profile_picture_preview', 'id_document_preview')
+    search_fields = ('username', 'first_name', 'last_name', 'email')
     
     def profile_picture_preview(self, obj):
         if obj.profile_picture:
