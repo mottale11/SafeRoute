@@ -12,13 +12,20 @@ import json
 
 def home_view(request):
     """Landing page"""
-    # Get recent incidents for display with images
-    recent_incidents = IncidentReport.objects.filter(is_verified=True).select_related('user').prefetch_related('images').order_by('-created_at')[:6]
-    
-    # Calculate risk zones for mini-heatmap
-    high_risk_count = IncidentReport.objects.filter(severity='high', is_verified=True).count()
-    moderate_risk_count = IncidentReport.objects.filter(severity='moderate', is_verified=True).count()
-    safe_zones_count = IncidentReport.objects.filter(severity='low', is_verified=True).count()
+    try:
+        # Get recent incidents for display with images
+        recent_incidents = IncidentReport.objects.filter(is_verified=True).select_related('user').prefetch_related('images').order_by('-created_at')[:6]
+        
+        # Calculate risk zones for mini-heatmap
+        high_risk_count = IncidentReport.objects.filter(severity='high', is_verified=True).count()
+        moderate_risk_count = IncidentReport.objects.filter(severity='moderate', is_verified=True).count()
+        safe_zones_count = IncidentReport.objects.filter(severity='low', is_verified=True).count()
+    except Exception as e:
+        # If database tables don't exist yet, use empty defaults
+        recent_incidents = []
+        high_risk_count = 0
+        moderate_risk_count = 0
+        safe_zones_count = 0
     
     context = {
         'recent_incidents': recent_incidents,
