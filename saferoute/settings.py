@@ -292,14 +292,14 @@ JAZZMIN_SETTINGS = {
     
     # Logo to use for your site, must be present in static files, used for brand on top left
     # Path is relative to STATIC_URL
-    "site_logo": None,  # Will use default if file not found, set to "images/SR_Logo.png" if logo exists
+    "site_logo": "images/SR_Logo.png",  # Will use default if file not found, set to "images/SR_Logo.png" if logo exists
     
     # Logo to use for your site, must be present in static files, used for login form logo
     # Path is relative to STATIC_URL
-    "login_logo": None,  # Will use default if file not found, set to "images/SR_Logo.png" if logo exists
+    "login_logo": "images/SR_Logo.png",  # Will use default if file not found, set to "images/SR_Logo.png" if logo exists
     
     # Logo to use for login form in dark themes
-    "login_logo_dark": None,
+    "login_logo_dark": "images/SR_Logo.png",
     
     # CSS classes that are applied to the logo above
     "site_logo_classes": "img-circle",
