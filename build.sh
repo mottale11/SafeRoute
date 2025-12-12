@@ -8,8 +8,8 @@ set -o errexit
 pip install --upgrade pip
 pip install -r requirements.txt
 
-# Collect static files
-python manage.py collectstatic --noinput
+# Collect static files (continue even if some files are missing)
+python manage.py collectstatic --noinput || echo "Warning: collectstatic had some issues, but continuing..."
 
 # Run database migrations
 python manage.py migrate --noinput

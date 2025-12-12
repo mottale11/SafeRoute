@@ -186,10 +186,10 @@ class IncidentImageAdmin(admin.ModelAdmin):
 
 @admin.register(IncidentVideo)
 class IncidentVideoAdmin(admin.ModelAdmin):
-    list_display = ('id', 'report_link', 'video_type', 'is_blurred_badge', 'created_at')
-    list_filter = ('video_type', 'is_blurred', 'created_at')
+    list_display = ('id', 'report_link', 'video_preview', 'created_at')
+    list_filter = ('created_at',)
     search_fields = ('report__title', 'description')
-    readonly_fields = ('created_at',)
+    readonly_fields = ('created_at', 'video_preview')
     date_hierarchy = 'created_at'
     
     def report_link(self, obj):
@@ -199,19 +199,33 @@ class IncidentVideoAdmin(admin.ModelAdmin):
         return '-'
     report_link.short_description = 'Report'
     
-    def is_blurred_badge(self, obj):
-        if obj.is_blurred:
-            return format_html('<span class="badge badge-warning">Blurred</span>')
-        return format_html('<span class="badge badge-success">Clear</span>')
-    is_blurred_badge.short_description = 'Blur Status'
+    def video_preview(self, obj):
+        if obj.video:
+            return format_html(
+                '<a href="{}" target="_blank">View Video</a>',
+                obj.video.url
+            )
+        return format_html('<span style="color: #999;">No video</span>')
+    video_preview.short_description = 'Video'
+    
+    fieldsets = (
+        ('Video Information', {
+            'fields': ('report', 'video', 'video_preview', 'description'),
+            'classes': ('wide',)
+        }),
+        ('Metadata', {
+            'fields': ('created_at',),
+            'classes': ('collapse',)
+        }),
+    )
 
 
 @admin.register(IncidentAudio)
 class IncidentAudioAdmin(admin.ModelAdmin):
-    list_display = ('id', 'report_link', 'audio_type', 'duration', 'created_at')
-    list_filter = ('audio_type', 'created_at')
+    list_display = ('id', 'report_link', 'audio_preview', 'created_at')
+    list_filter = ('created_at',)
     search_fields = ('report__title', 'description')
-    readonly_fields = ('created_at',)
+    readonly_fields = ('created_at', 'audio_preview')
     date_hierarchy = 'created_at'
     
     def report_link(self, obj):
@@ -220,6 +234,27 @@ class IncidentAudioAdmin(admin.ModelAdmin):
             return format_html('<a href="{}">{}</a>', url, obj.report.title[:50])
         return '-'
     report_link.short_description = 'Report'
+    
+    def audio_preview(self, obj):
+        if obj.audio:
+            return format_html(
+                '<audio controls><source src="{}" type="audio/mpeg">Your browser does not support the audio element.</audio><br><a href="{}" target="_blank">Download Audio</a>',
+                obj.audio.url,
+                obj.audio.url
+            )
+        return format_html('<span style="color: #999;">No audio</span>')
+    audio_preview.short_description = 'Audio'
+    
+    fieldsets = (
+        ('Audio Information', {
+            'fields': ('report', 'audio', 'audio_preview', 'description'),
+            'classes': ('wide',)
+        }),
+        ('Metadata', {
+            'fields': ('created_at',),
+            'classes': ('collapse',)
+        }),
+    )
 
 
 @admin.register(SavedZone)

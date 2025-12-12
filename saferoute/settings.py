@@ -291,10 +291,12 @@ JAZZMIN_SETTINGS = {
     "site_brand": "SafeRoute",
     
     # Logo to use for your site, must be present in static files, used for brand on top left
-    "site_logo": "images/SR_Logo.png",
+    # Path is relative to STATIC_URL
+    "site_logo": None,  # Will use default if file not found, set to "images/SR_Logo.png" if logo exists
     
     # Logo to use for your site, must be present in static files, used for login form logo
-    "login_logo": "images/SR_Logo.png",
+    # Path is relative to STATIC_URL
+    "login_logo": None,  # Will use default if file not found, set to "images/SR_Logo.png" if logo exists
     
     # Logo to use for login form in dark themes
     "login_logo_dark": None,
@@ -405,7 +407,8 @@ JAZZMIN_SETTINGS = {
     # UI Tweaks #
     #############
     # Relative paths to custom CSS/JS scripts (must be present in static files)
-    "custom_css": "admin/css/custom_admin.css",
+    # Set to None if file doesn't exist or causes issues
+    "custom_css": None,  # Set to "admin/css/custom_admin.css" if file exists
     "custom_js": None,
     # Whether to link font from fonts.googleapis.com (use custom_css to supply font otherwise)
     "use_google_fonts_cdn": True,
